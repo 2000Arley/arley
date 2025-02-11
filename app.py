@@ -321,7 +321,7 @@ def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision):
 import time
 
 def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
-    fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%Y-%m-%d')
+    fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%d/%m/%Y %H:%M:%S')
 
     print(f"📅 Fecha actual: {datetime.now()}")
     print(f"📅 Fecha vencimiento: {fecha_vencimiento_dt}")
@@ -385,13 +385,13 @@ def buscar():
             # Convertir la fecha de emisión a formato datetime
             fecha_emision = pd.to_datetime(fecha_emision)
             # Calcular la fecha de vencimiento (3 meses desde la fecha de emisión)
-            fecha_vencimiento = fecha_emision + timedelta(days=90)
+            fecha_vencimiento = fecha_emision + timedelta(minutes=5)
 
             # Verificar si la carta está vencida
             if datetime.now() > fecha_vencimiento:
                 # Generar una nueva carta con la fecha actual
                 nueva_fecha_emision = datetime.now()
-                nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(days=90)
+                nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(minutes=5)
 
                 # Actualizar la fecha de emisión en el DataFrame
                 df.loc[df['cedula'] == cedula, 'fecha_emision'] = nueva_fecha_emision
@@ -400,8 +400,8 @@ def buscar():
                     # Generar el PDF con las nuevas fechas
                     pdf_buffer = generar_pdf(
                         nombre, cedula,
-                        nueva_fecha_emision.strftime('%Y-%m-%d'),
-                        nueva_fecha_vencimiento.strftime('%Y-%m-%d'),
+                        nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'),
+                        nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'),
                         parcela
                     )
                 except Exception as e:
@@ -410,7 +410,7 @@ def buscar():
                 # Guardar el registro solo después de generar el PDF
                 try:
                     with open(registro_path, 'a') as archivo:
-                        registro = f"{cedula},{nombre},{nueva_fecha_emision.strftime('%Y-%m-%d')},{parcela}\n"
+                        registro = f"{cedula},{nombre},{nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S')},{parcela}\n"
                         archivo.write(registro)
                         
                     # Imprimir el registro en la consola
@@ -419,17 +419,17 @@ def buscar():
                     return render_template('busqueda.html', error=f"Error guardando el registro: {str(e)}")
 
                 # Aquí verificamos que se envíe el mensaje de bienvenida
-                enviar_mensaje(nombre, nueva_fecha_emision.strftime('%Y-%m-%d'), "+573134864354", nueva_fecha_vencimiento.strftime('%Y-%m-%d'))
+                enviar_mensaje(nombre, nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
                 # Aquí enviamos el mensaje indicando que la carta está vencida
-                enviar_mensaje_vencido(nombre, fecha_emision.strftime('%Y-%m-%d'), "+573134864354", fecha_vencimiento.strftime('%Y-%m-%d'))
+                enviar_mensaje_vencido(nombre, fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
                 # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
 
             else:
                 # Si la carta aún es válida
-                return render_template('carta_vigente.html', fecha_vencimiento=fecha_vencimiento.strftime('%Y-%m-%d'))
+                return render_template('carta_vigente.html', fecha_vencimiento=fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
         elif cedula not in df['cedula'].values:
             # Si la cédula no está registrada
@@ -480,14 +480,14 @@ def agregar():
         cedula = int(request.form['cedula'])
         parcela = request.form['parcela']
         fecha_emision = datetime.now()
-        fecha_vencimiento = (fecha_emision + timedelta(days=180)).strftime('%Y-%m-%d')
+        fecha_vencimiento = (fecha_emision + timedelta(days=180)).strftime('%d/%m/%Y %H:%M:%S')
         
         # Agregar la nueva entrada al DataFrame
         global df
         nuevo_registro = pd.DataFrame({'nombre': [nombre], 'cedula': [cedula], 'fecha_emision': [fecha_emision], 'parcela': [parcela]})
         df = pd.concat([df, nuevo_registro], ignore_index=True)
         
-        fecha_emision_formateada = fecha_emision.strftime('%Y-%m-%d')
+        fecha_emision_formateada = fecha_emision.strftime('%d/%m/%Y %H:%M:%S')
         
         return f"Usuario {nombre} con cédula {cedula} agregado correctamente el {fecha_emision_formateada} con vencimiento el {fecha_vencimiento}."
     except Exception as e:
@@ -495,6 +495,8 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
 
 
 
