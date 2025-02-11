@@ -68,8 +68,8 @@ app = Flask(__name__)
 
 # Diccionario de usuarios con números de celular en formato internacional
 Diccionario = {
-    "nombre": ["yenifer rendon", "alix rincon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
-    "cedula": [1000992177, 40417761, 10000003, 10000004, 10000005, 10000006],
+    "nombre": ["yenifer rendon", "arley rendon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
+    "cedula": [1000992177, 1000992177, 10000003, 10000004, 10000005, 10000006],
     "numero_celular": ["+573134864354", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
     "afiliado": [230, 450, 550, 600, 700, 800],
     "fecha_emision": [
@@ -497,6 +497,9 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
 
 
 
