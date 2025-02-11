@@ -1,6 +1,5 @@
 
 
-
 from flask import Flask, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
@@ -498,10 +497,6 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
-
-
-
 
 
 
