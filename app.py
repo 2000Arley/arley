@@ -302,29 +302,6 @@ print(f"TWILIO_PHONE: {twilio_phone}")
 
 
 
-import os
-from twilio.rest import Client
-
-
-
-# Inicializar cliente Twilio
-client = Client(account_sid, auth_token)
-
-def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision):
-    try:
-        # Enviar el mensaje solo si la carta está vencida
-        message = client.messages.create(
-            body=f"¡Hola {nombre}! ⚠️ Tu carta de residencia ha vencido. Fue emitida el y su fecha de vencimiento era el {nueva_fecha_emision}. Por favor, contacta con nosotros para renovar tu carta o si necesitas asistencia. ¡Estamos aquí para ayudarte! 🙌",
-            from_=twilio_phone,
-            to=f'whatsapp:{numero_destino}'
-        )
-        print(f"Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
-    except Exception as e:
-        print(f"Error al enviar el mensaje a {numero_destino}: {e}")
-
-print()
-
-
 
 import time
 
@@ -342,23 +319,27 @@ twilio_phone = os.getenv("TWILIO_PHONE")
 
 client = Client(account_sid, auth_token)
 
-def enviar_mensaje_vencido(nombre, numero_destino, fecha_emision, fecha_vencimiento):
-    fecha_vencimiento_dt = datetime.strptime(fecha_vencimiento, '%d/%m/%Y %H:%M:%S')
 
-    print(f"📅 Fecha actual: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-    print(f"📅 Fecha vencimiento: {fecha_vencimiento}")
+
+client = Client(account_sid, auth_token)
+
+
+
+def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
+    fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%Y-%m-%d %H:%M:%S')
+
+    print(f"📅 Fecha actual: {datetime.now()}")
     print(f"📅 Fecha vencimiento: {fecha_vencimiento_dt}")
-    
 
     # Esperar hasta que la fecha de vencimiento haya pasado
     while datetime.now() < fecha_vencimiento_dt:
         print("⌛ Esperando que venza la carta...")
-        time.sleep(30)  # Espera 30 segundos antes de volver a verificar
+        time.sleep(30)  # Esperar 30 segundos antes de volver a verificar
 
     try:
         message = client.messages.create(
             body=f"¡Hola {nombre}! ⚠️ Tu carta de residencia ha vencido. "
-                 f"Fue emitida el {fecha_emision} y su fecha de vencimiento era el {fecha_vencimiento}. "
+                 f"Fue emitida el {nueva_fecha_emision} y su fecha de vencimiento era el {nueva_fecha_vencimiento}. "
                  "Por favor, contacta con nosotros para renovarla. ¡Estamos aquí para ayudarte! 🙌",
             from_=twilio_phone,
             to=f'whatsapp:{numero_destino}'
@@ -366,18 +347,6 @@ def enviar_mensaje_vencido(nombre, numero_destino, fecha_emision, fecha_vencimie
         print(f"✅ Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"❌ Error al enviar el mensaje a {numero_destino}: {str(e)}")
-
-#
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route('/')
@@ -389,17 +358,20 @@ def buscador():
     return render_template('busqueda.html')  # Ahora apunta a 'index.html'
 
 
+from datetime import datetime, timedelta
+import pandas as pd
+import threading
+from flask import render_template, request, send_file
 
 @app.route('/buscar', methods=['POST'])
 def buscar():
     try:
         cedula = request.form['cedula']
 
-        # Verificar si la cédula es válida
+        # Verificar si la cédula es un número válido
         try:
             cedula = int(cedula)
         except ValueError:
-            # Si la cédula ingresada no es un número
             return render_template('busqueda.html', error="Por favor, ingresa un número de cédula válido.")
 
         # Buscar la cédula en el DataFrame
@@ -409,10 +381,16 @@ def buscar():
             fecha_emision = df.loc[df['cedula'] == cedula, 'fecha_emision'].values[0]
             parcela = df.loc[df['cedula'] == cedula, 'parcela'].values[0]
 
-            # Convertir la fecha de emisión a formato datetime
-            fecha_emision = pd.to_datetime(fecha_emision)
-            # Calcular la fecha de vencimiento (3 meses desde la fecha de emisión)
+            # Verificar si la fecha de emisión es válida
+            if pd.isna(fecha_emision) or fecha_emision == "":
+                return render_template('busqueda.html', error="Error: La fecha de emisión está vacía o no es válida.")
+
+            # Convertir la fecha de emisión a datetime correctamente
+            fecha_emision = pd.to_datetime(fecha_emision).to_pydatetime()
             fecha_vencimiento = fecha_emision + timedelta(minutes=2)
+
+            # 🔍 Depuración: Imprimir fechas en consola
+            print(f"Fecha emisión: {fecha_emision}, Fecha vencimiento: {fecha_vencimiento}, Fecha actual: {datetime.now()}")
 
             # Verificar si la carta está vencida
             if datetime.now() > fecha_vencimiento:
@@ -420,61 +398,58 @@ def buscar():
                 nueva_fecha_emision = datetime.now()
                 nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(minutes=2)
 
-                # Actualizar la fecha de emisión en el DataFrame
+                # Actualizar la fecha en el DataFrame
                 df.loc[df['cedula'] == cedula, 'fecha_emision'] = nueva_fecha_emision
+
+                # Guardar cambios en CSV (si aplica)
+                try:
+                    df.to_csv("datos.csv", index=False)
+                    print("✅ Datos actualizados en CSV")
+                except Exception as e:
+                    print(f"❌ Error guardando en CSV: {str(e)}")
 
                 try:
                     # Generar el PDF con las nuevas fechas
                     pdf_buffer = generar_pdf(
                         nombre, cedula,
-                        nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'),
-                        nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'),
+                        nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'),
+                        nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'),
                         parcela
                     )
+
+                    if pdf_buffer is None:
+                        return render_template('busqueda.html', error="Error: El PDF no se generó correctamente.")
+
                 except Exception as e:
+                    print(f"❌ Error generando el PDF: {str(e)}")
                     return render_template('busqueda.html', error=f"Error generando el PDF: {str(e)}")
 
                 # Guardar el registro solo después de generar el PDF
                 try:
                     with open(registro_path, 'a') as archivo:
-                        registro = f"{cedula},{nombre},{nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S')},{parcela}\n"
+                        registro = f"{cedula},{nombre},{nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S')},{parcela}\n"
                         archivo.write(registro)
-                        
-                    # Imprimir el registro en la consola
                     print(f"Registro guardado: {registro.strip()}")
                 except Exception as e:
+                    print(f"❌ Error guardando el registro: {str(e)}")
                     return render_template('busqueda.html', error=f"Error guardando el registro: {str(e)}")
 
-                # Aquí verificamos que se envíe el mensaje de bienvenida
-                enviar_mensaje(nombre, nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
-
-                # Aquí enviamos el mensaje indicando que la carta está vencida
-                enviar_mensaje_vencido(nombre, "+573134864354", nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
-
+                # Enviar mensajes sin bloquear la ejecución
+                threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
+                threading.Thread(target=enviar_mensaje_vencido, args=(nombre, "+573134864354", nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
 
                 # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
 
             else:
-                # Si la carta aún es válida
-                return render_template('carta_vigente.html', fecha_vencimiento=fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
+                return render_template('carta_vigente.html', fecha_vencimiento=fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))
 
-        elif cedula not in df['cedula'].values:
-            # Si la cédula no está registrada
+        else:
             return render_template('busqueda.html', error="La cédula ingresada no está registrada.")
 
     except Exception as e:
+        print(f"❌ Error inesperado: {str(e)}")
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
-
-
-
-
-
-
-
-
-
-
 
 
 registro_path = 'registro_emisiones.txt'
@@ -523,6 +498,9 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
 
 
 
