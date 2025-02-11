@@ -1,5 +1,6 @@
 
 
+
 from flask import Flask, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
@@ -321,27 +322,43 @@ def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision):
     except Exception as e:
         print(f"Error al enviar el mensaje a {numero_destino}: {e}")
 
-
+print()
 
 
 
 import time
 
-def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
-    fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%d/%m/%Y %H:%M:%S')
+from datetime import datetime
+import time
+from twilio.rest import Client
 
-    print(f"📅 Fecha actual: {datetime.now()}")
+dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
+load_dotenv(dotenv_path)
+
+
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+twilio_phone = os.getenv("TWILIO_PHONE")
+
+client = Client(account_sid, auth_token)
+
+def enviar_mensaje_vencido(nombre, numero_destino, fecha_emision, fecha_vencimiento):
+    fecha_vencimiento_dt = datetime.strptime(fecha_vencimiento, '%d/%m/%Y %H:%M:%S')
+
+    print(f"📅 Fecha actual: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+    print(f"📅 Fecha vencimiento: {fecha_vencimiento}")
     print(f"📅 Fecha vencimiento: {fecha_vencimiento_dt}")
+    
 
     # Esperar hasta que la fecha de vencimiento haya pasado
     while datetime.now() < fecha_vencimiento_dt:
         print("⌛ Esperando que venza la carta...")
-        time.sleep(30)  # Esperar 30 segundos antes de volver a verificar
+        time.sleep(30)  # Espera 30 segundos antes de volver a verificar
 
     try:
         message = client.messages.create(
             body=f"¡Hola {nombre}! ⚠️ Tu carta de residencia ha vencido. "
-                 f"Fue emitida el {nueva_fecha_emision} y su fecha de vencimiento era el {nueva_fecha_vencimiento}. "
+                 f"Fue emitida el {fecha_emision} y su fecha de vencimiento era el {fecha_vencimiento}. "
                  "Por favor, contacta con nosotros para renovarla. ¡Estamos aquí para ayudarte! 🙌",
             from_=twilio_phone,
             to=f'whatsapp:{numero_destino}'
@@ -349,6 +366,9 @@ def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fe
         print(f"✅ Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"❌ Error al enviar el mensaje a {numero_destino}: {str(e)}")
+
+#
+
 
 
 
@@ -429,7 +449,7 @@ def buscar():
                 enviar_mensaje(nombre, nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
                 # Aquí enviamos el mensaje indicando que la carta está vencida
-                enviar_mensaje_vencido(nombre, "+573134864354", fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
+                enviar_mensaje_vencido(nombre, "+573134864354", nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
 
                 # Descargar el PDF
@@ -445,5 +465,67 @@ def buscar():
 
     except Exception as e:
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
+
+
+
+
+
+
+
+
+
+
+
+
+registro_path = 'registro_emisiones.txt'
+import os
+registro_path = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
+
+@app.route('/historial')
+def historial():
+    registros = []
+    try:
+        # Leer el archivo de registros
+        with open(registro_path, 'r') as archivo:
+            for linea in archivo:
+                registros.append(linea.strip().split(','))
+    except Exception as e:
+        registros = []
+        print(f"Error al leer el archivo de registros: {e}")
+
+    return render_template('historial.html', registros=registros)
+
+
+
+
+
+
+
+@app.route('/agregar', methods=['POST'])
+def agregar():
+    try:
+        nombre = request.form['nombre']
+        cedula = int(request.form['cedula'])
+        parcela = request.form['parcela']
+        fecha_emision = datetime.now()
+        fecha_vencimiento = (fecha_emision + timedelta(days=180)).strftime('%d/%m/%Y %H:%M:%S')
+        
+        # Agregar la nueva entrada al DataFrame
+        global df
+        nuevo_registro = pd.DataFrame({'nombre': [nombre], 'cedula': [cedula], 'fecha_emision': [fecha_emision], 'parcela': [parcela]})
+        df = pd.concat([df, nuevo_registro], ignore_index=True)
+        
+        fecha_emision_formateada = fecha_emision.strftime('%d/%m/%Y %H:%M:%S')
+        
+        return f"Usuario {nombre} con cédula {cedula} agregado correctamente el {fecha_emision_formateada} con vencimiento el {fecha_vencimiento}."
+    except Exception as e:
+        return f"Ocurrió un error: {e}"
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+
+
+
+
 
 
