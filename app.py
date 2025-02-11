@@ -1,5 +1,6 @@
 
 
+
 from flask import Flask, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
@@ -267,8 +268,12 @@ import os
 from dotenv import load_dotenv
 from twilio.rest import Client
 
-# Cargar variables de entorno
-load_dotenv()
+
+
+
+dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
+load_dotenv(dotenv_path)
+
 
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
@@ -288,6 +293,9 @@ def enviar_mensaje(nombre, fecha_emision, numero_destino, nueva_fecha_vencimient
         print(f"Error al enviar el mensaje a {numero_destino}: {e}")
 
 
+print(f"TWILIO_ACCOUNT_SID: {account_sid}")
+print(f"TWILIO_AUTH_TOKEN: {auth_token}")
+print(f"TWILIO_PHONE: {twilio_phone}")
 
 
 
@@ -495,6 +503,9 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
 
 
 
