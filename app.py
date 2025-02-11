@@ -1,6 +1,5 @@
 
 
-
 from flask import Flask, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
@@ -393,13 +392,13 @@ def buscar():
             # Convertir la fecha de emisión a formato datetime
             fecha_emision = pd.to_datetime(fecha_emision)
             # Calcular la fecha de vencimiento (3 meses desde la fecha de emisión)
-            fecha_vencimiento = fecha_emision + timedelta(minutes=5)
+            fecha_vencimiento = fecha_emision + timedelta(minutes=2)
 
             # Verificar si la carta está vencida
             if datetime.now() > fecha_vencimiento:
                 # Generar una nueva carta con la fecha actual
                 nueva_fecha_emision = datetime.now()
-                nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(minutes=5)
+                nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(minutes=2)
 
                 # Actualizar la fecha de emisión en el DataFrame
                 df.loc[df['cedula'] == cedula, 'fecha_emision'] = nueva_fecha_emision
@@ -430,7 +429,8 @@ def buscar():
                 enviar_mensaje(nombre, nueva_fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
 
                 # Aquí enviamos el mensaje indicando que la carta está vencida
-                enviar_mensaje_vencido(nombre, fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), "+573134864354", fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
+                enviar_mensaje_vencido(nombre, "+573134864354", fecha_emision.strftime('%d/%m/%Y %H:%M:%S'), fecha_vencimiento.strftime('%d/%m/%Y %H:%M:%S'))
+
 
                 # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
@@ -445,74 +445,5 @@ def buscar():
 
     except Exception as e:
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
-
-
-
-
-
-
-
-
-
-
-
-
-registro_path = 'registro_emisiones.txt'
-import os
-registro_path = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
-
-@app.route('/historial')
-def historial():
-    registros = []
-    try:
-        # Leer el archivo de registros
-        with open(registro_path, 'r') as archivo:
-            for linea in archivo:
-                registros.append(linea.strip().split(','))
-    except Exception as e:
-        registros = []
-        print(f"Error al leer el archivo de registros: {e}")
-
-    return render_template('historial.html', registros=registros)
-
-
-
-
-
-
-
-@app.route('/agregar', methods=['POST'])
-def agregar():
-    try:
-        nombre = request.form['nombre']
-        cedula = int(request.form['cedula'])
-        parcela = request.form['parcela']
-        fecha_emision = datetime.now()
-        fecha_vencimiento = (fecha_emision + timedelta(days=180)).strftime('%d/%m/%Y %H:%M:%S')
-        
-        # Agregar la nueva entrada al DataFrame
-        global df
-        nuevo_registro = pd.DataFrame({'nombre': [nombre], 'cedula': [cedula], 'fecha_emision': [fecha_emision], 'parcela': [parcela]})
-        df = pd.concat([df, nuevo_registro], ignore_index=True)
-        
-        fecha_emision_formateada = fecha_emision.strftime('%d/%m/%Y %H:%M:%S')
-        
-        return f"Usuario {nombre} con cédula {cedula} agregado correctamente el {fecha_emision_formateada} con vencimiento el {fecha_vencimiento}."
-    except Exception as e:
-        return f"Ocurrió un error: {e}"
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
-
-
-
-
-
-
-
-
-
-
 
 
