@@ -1,4 +1,5 @@
 ﻿aiohttp==3.9.5
+python-dotenv
 twilio
 qrcode[pil]
 aiosignal==1.3.1
