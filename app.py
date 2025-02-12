@@ -68,9 +68,9 @@ app = Flask(__name__)
 
 # Diccionario de usuarios con números de celular en formato internacional
 Diccionario = {
-    "nombre": ["yenifer rendon", "arley rendon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
-    "cedula": [1000992177, 1000992177, 10000003, 10000004, 10000005, 10000006],
-    "numero_celular": ["+53103396961", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
+    "nombre": ["yenifer rendon", "alix rincon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
+    "cedula": [1000992177, 40417761, 10000003, 10000004, 10000005, 10000006],
+    "numero_celular": ["+573103396961", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
     "afiliado": [230, 450, 550, 600, 700, 800],
     "fecha_emision": [
         datetime(2023, 2, 1),
@@ -280,16 +280,38 @@ twilio_phone = os.getenv("TWILIO_PHONE")
 
 client = Client(account_sid, auth_token)
 
-def enviar_mensaje(nombre, fecha_emision, numero_destino, nueva_fecha_vencimiento):
+
+
+import threading
+import pandas as pd
+from datetime import datetime
+
+
+
+def enviar_mensaje(nombre, nueva_fecha_emision, nueva_fecha_vencimiento):
+    # Buscar el número de celular en el DataFrame
+    fila_usuario = df[df['nombre'] == nombre]
+    
+    if fila_usuario.empty:
+        print(f"No se encontró número de teléfono para {nombre}.")
+        return
+    
+    numero_destino = fila_usuario['numero_celular'].values[0]  # Extrae el número de celular
+
     try:
         message = client.messages.create(
-            body=f"¡Hola {nombre}! 🎉 Bienvenido/a. Nos alegra que formes parte de nuestra comunidad. Tu carta de residencia fue emitida el {fecha_emision}. Si necesitas ayuda, estamos aquí para ti. ¡Disfruta tu estancia! {nueva_fecha_vencimiento} 😊",
+            body=f"¡Hola {nombre}! 🎉 Bienvenido/a. Nos alegra que formes parte de nuestra comunidad. "
+                 f"Tu carta de residencia fue emitida el {nueva_fecha_emision}. Si necesitas ayuda, estamos aquí para ti. "
+                 f"¡Disfruta tu estancia! {nueva_fecha_vencimiento} 😊",
             from_=twilio_phone,
             to=f'whatsapp:{numero_destino}'
         )
         print(f"Mensaje de bienvenida enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"Error al enviar el mensaje a {numero_destino}: {e}")
+
+
+
 
 
 print(f"TWILIO_ACCOUNT_SID: {account_sid}")
@@ -323,12 +345,20 @@ client = Client(account_sid, auth_token)
 client = Client(account_sid, auth_token)
 
 
+def enviar_mensaje_vencido(nombre, nueva_fecha_emision, nueva_fecha_vencimiento):
+    # Buscar el número de celular en el DataFrame
+    fila_usuario = df[df['nombre'] == nombre]
 
-def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
+    if fila_usuario.empty:
+        print(f"❌ No se encontró número de teléfono para {nombre}.")
+        return
+
+    numero_destino = fila_usuario['numero_celular'].values[0]  # Extrae el número de celular
+
     fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%Y-%m-%d %H:%M:%S')
 
     print(f"📅 Fecha actual: {datetime.now()}")
-    print(f"📅 Fecha vencimiento: {fecha_vencimiento_dt}")
+    print(f"📅 Fecha de vencimiento: {fecha_vencimiento_dt}")
 
     # Esperar hasta que la fecha de vencimiento haya pasado
     while datetime.now() < fecha_vencimiento_dt:
@@ -346,6 +376,10 @@ def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fe
         print(f"✅ Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"❌ Error al enviar el mensaje a {numero_destino}: {str(e)}")
+
+
+
+
 
 
 @app.route('/')
@@ -434,8 +468,8 @@ def buscar():
                     return render_template('busqueda.html', error=f"Error guardando el registro: {str(e)}")
 
                 # Enviar mensajes sin bloquear la ejecución
-                threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
-                threading.Thread(target=enviar_mensaje_vencido, args=(nombre, "+573134864354", nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
+                threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
+                threading.Thread(target=enviar_mensaje_vencido, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
 
                 # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
@@ -497,7 +531,6 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
 
 
 
