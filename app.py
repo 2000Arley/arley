@@ -1,5 +1,10 @@
 
 
+
+
+
+
+
 from flask import Flask, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
@@ -68,8 +73,8 @@ app = Flask(__name__)
 
 # Diccionario de usuarios con números de celular en formato internacional
 Diccionario = {
-    "nombre": ["yenifer rendon", "alix rincon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
-    "cedula": [1000992177, 40417761, 10000003, 10000004, 10000005, 10000006],
+    "nombre": ["yenifer rendon", "arley rendon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
+    "cedula": [1000992177, 1000992179, 10000003, 10000004, 10000005, 10000006],
     "numero_celular": ["+573103396961", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
     "afiliado": [230, 450, 550, 600, 700, 800],
     "fecha_emision": [
@@ -90,8 +95,6 @@ df = pd.DataFrame(Diccionario)
 df = pd.DataFrame(Diccionario)
 
 print(df)
-
-
 
 
 
@@ -251,6 +254,33 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
 
 
+
+
+
+
+
+    # GENERAR EL CÓDIGO QR
+    qr_data = f"Nombre: {nombre}\nCédula: {cedula}\nFecha de emisión: {fecha_emision}\nFecha de vencimiento: {fecha_vencimiento}\nParcela: {parcela}"
+    qr = qrcode.make(qr_data)
+
+    # Guardar el QR en memoria
+    qr_buffer = BytesIO()
+    qr.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+
+    # Agregar QR al PDF
+    qr_image = ImageReader(qr_buffer)
+    p.drawImage(qr_image, 250, 50, width=100, height=100)  # Posición (x, y) y tamaño
+
+    # Finalizar el PDF
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return buffer
+
+
+
+
 import re
 
 import os
@@ -282,38 +312,16 @@ twilio_phone = os.getenv("TWILIO_PHONE")
 
 client = Client(account_sid, auth_token)
 
-
-
-import threading
-import pandas as pd
-from datetime import datetime
-
-
-
-def enviar_mensaje(nombre, nueva_fecha_emision, nueva_fecha_vencimiento):
-    # Buscar el número de celular en el DataFrame
-    fila_usuario = df[df['nombre'] == nombre]
-    
-    if fila_usuario.empty:
-        print(f"No se encontró número de teléfono para {nombre}.")
-        return
-    
-    numero_destino = fila_usuario['numero_celular'].values[0]  # Extrae el número de celular
-
+def enviar_mensaje(nombre, fecha_emision, numero_destino, nueva_fecha_vencimiento):
     try:
         message = client.messages.create(
-            body=f"¡Hola {nombre}! 🎉 Bienvenido/a. Nos alegra que formes parte de nuestra comunidad. "
-                 f"Tu carta de residencia fue emitida el {nueva_fecha_emision}. Si necesitas ayuda, estamos aquí para ti. "
-                 f"¡Disfruta tu estancia! {nueva_fecha_vencimiento} 😊",
+            body=f"¡Hola {nombre}! 🎉 Bienvenido/a. Nos alegra que formes parte de nuestra comunidad. Tu carta de residencia fue emitida el {fecha_emision}. Si necesitas ayuda, estamos aquí para ti. ¡Disfruta tu estancia! {nueva_fecha_vencimiento} 😊",
             from_=twilio_phone,
             to=f'whatsapp:{numero_destino}'
         )
         print(f"Mensaje de bienvenida enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"Error al enviar el mensaje a {numero_destino}: {e}")
-
-
-
 
 
 print(f"TWILIO_ACCOUNT_SID: {account_sid}")
@@ -347,20 +355,12 @@ client = Client(account_sid, auth_token)
 client = Client(account_sid, auth_token)
 
 
-def enviar_mensaje_vencido(nombre, nueva_fecha_emision, nueva_fecha_vencimiento):
-    # Buscar el número de celular en el DataFrame
-    fila_usuario = df[df['nombre'] == nombre]
 
-    if fila_usuario.empty:
-        print(f"❌ No se encontró número de teléfono para {nombre}.")
-        return
-
-    numero_destino = fila_usuario['numero_celular'].values[0]  # Extrae el número de celular
-
+def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
     fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%Y-%m-%d %H:%M:%S')
 
     print(f"📅 Fecha actual: {datetime.now()}")
-    print(f"📅 Fecha de vencimiento: {fecha_vencimiento_dt}")
+    print(f"📅 Fecha vencimiento: {fecha_vencimiento_dt}")
 
     # Esperar hasta que la fecha de vencimiento haya pasado
     while datetime.now() < fecha_vencimiento_dt:
@@ -378,10 +378,6 @@ def enviar_mensaje_vencido(nombre, nueva_fecha_emision, nueva_fecha_vencimiento)
         print(f"✅ Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"❌ Error al enviar el mensaje a {numero_destino}: {str(e)}")
-
-
-
-
 
 
 @app.route('/')
@@ -470,8 +466,8 @@ def buscar():
                     return render_template('busqueda.html', error=f"Error guardando el registro: {str(e)}")
 
                 # Enviar mensajes sin bloquear la ejecución
-                threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
-                threading.Thread(target=enviar_mensaje_vencido, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
+                threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
+                threading.Thread(target=enviar_mensaje_vencido, args=(nombre, "+573134864354", nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
 
                 # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
@@ -518,7 +514,7 @@ def agregar():
         cedula = int(request.form['cedula'])
         parcela = request.form['parcela']
         fecha_emision = datetime.now()
-        fecha_vencimiento = (fecha_emision + timedelta(days=180)).strftime('%d/%m/%Y %H:%M:%S')
+        fecha_vencimiento = (fecha_emision + timedelta(minutes=2)).strftime('%d/%m/%Y %H:%M:%S')
         
         # Agregar la nueva entrada al DataFrame
         global df
@@ -533,6 +529,8 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
 
 
 
