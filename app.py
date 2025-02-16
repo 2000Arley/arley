@@ -98,17 +98,24 @@ print(df)
 
 
 
+
+
 def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
     # Rutas de los logos
+    firma_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/firma.gif"
     logo1_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo.gif"
     logo2_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_2.gif"
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
+    
 
 
-    # Verificar y dibujar logos
+    
+    if os.path.exists(firma_path):
+        p.drawImage(firma_path, 75, 140, width=150, height=30) # Verificar y dibujar logos
+
     if os.path.exists(logo1_path):  # vertical 
         p.drawImage(logo1_path, 25, 685, width=107, height=77)
 
@@ -116,7 +123,11 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
         p.drawImage(logo2_path, 490, 680, width=90, height=60)
  
     #if os.path.exists(logo3_path):  #           listo       listo
-        #p.drawImage(logo3_path,    490, 120, width=97, height=-100)
+        #p.drawImage(logo3_path,190, 120, width=97, height=100)
+
+  
+
+
 
     # Función para texto centrado
     def escribir_centrado_simple(canvas, texto, y, fuente="Helvetica-Bold", tamano=12):
@@ -213,38 +224,29 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     parrafo_vigencia.wrapOn(p, 470, 300)
     parrafo_vigencia.drawOn(p, 80, y -70)
 
+
+
+
     # Firmas
     firmas = [
-        ["Cordialmente:", "_____________", "DAMARIS HERNANDEZ", "PRESIDENTA DE LA JAC", "C.C. No. 1073693052", "Cel. 3122550516"],
-        ["Cordialmente:", "_____________", "DAMARIS HERNANDEZ", "PRESIDENTA DE LA JAC", "C.C. No. 1073693052", "Cel. 3122550516"],
+        ["Cordialmente:", "______________", "DAMARIS HERNANDEZ", "PRESIDENTA DE LA JAC", "C.C. No. 1073693052", "Cel. 3122550516"],
+        ["Cordialmente:", "______________", "DAMARIS HERNANDEZ", "PRESIDENTA DE LA JAC", "C.C. No. 1073693052", "Cel. 3122550516"],
     ]
-    x_pos = [80, 390]
+
+    
+     
+    desplazamiento_firmas = -30  
+    desplazamiento_cordialmente = 10  # Subimos solo "Cordialmente:"
+
+    x_pos = [80, 410]
     for i, firma in enumerate(firmas):
-        y_firma = 190
-        for linea in firma:
+        y_firma = 190 + desplazamiento_firmas 
+        p.drawString(x_pos[i], y_firma + desplazamiento_cordialmente, firma[0])  # Subimos solo "Cordialmente:"
+        y_firma -= 15  # Continuamos con las demás líneas normalmente
+        for linea in firma[1:]:  
             p.drawString(x_pos[i], y_firma, linea)
             y_firma -= 15
 
-
-
-    # GENERAR EL CÓDIGO QR
-    qr_data = f"Nombre: {nombre}\nCédula: {cedula}\nFecha de emisión: {fecha_emision}\nFecha de vencimiento: {fecha_vencimiento}\nParcela: {parcela}"
-    qr = qrcode.make(qr_data)
-
-    # Guardar el QR en memoria
-    qr_buffer = BytesIO()
-    qr.save(qr_buffer, format="PNG")
-    qr_buffer.seek(0)
-
-    # Agregar QR al PDF
-    qr_image = ImageReader(qr_buffer)
-    p.drawImage(qr_image, 240, 50, width=100, height=100)  # Posición (x, y) y tamaño
-
-    # Finalizar el PDF
-    p.showPage()
-    p.save()
-    buffer.seek(0)
-    return buffer
 
 
 
