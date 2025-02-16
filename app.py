@@ -105,9 +105,9 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     p = canvas.Canvas(buffer, pagesize=letter)
 
     # Rutas de los logos
-    firma_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/firma.gif"
-    logo1_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo.gif"
-    logo2_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_2.gif"
+    firma_path = "firma.gif"
+    logo1_path = "logo.gif"
+    logo2_path = "logo_2.gif"
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
     
 
