@@ -305,10 +305,10 @@ from twilio.rest import Client
 dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
 load_dotenv(dotenv_path)
 
-
+# Cargar credenciales de Twilio desde variables de entorno
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-twilio_phone = os.getenv("TWILIO_PHONE")
+twilio_phone = os.getenv("TWILIO_PHONE")  # Asegúrate de que este número es válido para SMS
 
 client = Client(account_sid, auth_token)
 
@@ -316,14 +316,14 @@ def enviar_mensaje(nombre, fecha_emision, numero_destino, nueva_fecha_vencimient
     try:
         message = client.messages.create(
             body=f"¡Hola {nombre}! 🎉 Bienvenido/a. Nos alegra que formes parte de nuestra comunidad. Tu carta de residencia fue emitida el {fecha_emision}. Si necesitas ayuda, estamos aquí para ti. ¡Disfruta tu estancia! {nueva_fecha_vencimiento} 😊",
-            from_=twilio_phone,
-            to=f'whatsapp:{numero_destino}'
+            from_=twilio_phone,  # NO uses "whatsapp:"
+            to=numero_destino    # Número destino en formato internacional
         )
         print(f"Mensaje de bienvenida enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"Error al enviar el mensaje a {numero_destino}: {e}")
 
-
+# Verificar credenciales cargadas correctamente
 print(f"TWILIO_ACCOUNT_SID: {account_sid}")
 print(f"TWILIO_AUTH_TOKEN: {auth_token}")
 print(f"TWILIO_PHONE: {twilio_phone}")
@@ -343,18 +343,12 @@ from twilio.rest import Client
 dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
 load_dotenv(dotenv_path)
 
-
+# Cargar credenciales de Twilio desde variables de entorno
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_phone = os.getenv("TWILIO_PHONE")
 
 client = Client(account_sid, auth_token)
-
-
-
-client = Client(account_sid, auth_token)
-
-
 
 def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fecha_vencimiento):
     fecha_vencimiento_dt = datetime.strptime(nueva_fecha_vencimiento, '%Y-%m-%d %H:%M:%S')
@@ -372,12 +366,15 @@ def enviar_mensaje_vencido(nombre, numero_destino, nueva_fecha_emision, nueva_fe
             body=f"¡Hola {nombre}! ⚠️ Tu carta de residencia ha vencido. "
                  f"Fue emitida el {nueva_fecha_emision} y su fecha de vencimiento era el {nueva_fecha_vencimiento}. "
                  "Por favor, contacta con nosotros para renovarla. ¡Estamos aquí para ayudarte! 🙌",
-            from_=twilio_phone,
-            to=f'whatsapp:{numero_destino}'
+            from_=twilio_phone,  # ✅ Número válido para SMS
+            to=numero_destino    # ✅ Sin 'whatsapp:', solo el número en formato internacional
         )
         print(f"✅ Mensaje de vencimiento enviado a {numero_destino}: {message.sid}")
     except Exception as e:
         print(f"❌ Error al enviar el mensaje a {numero_destino}: {str(e)}")
+
+
+
 
 
 @app.route('/')
