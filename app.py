@@ -2,10 +2,7 @@
 
 
 
-
-
-
-from flask import Flask, request, render_template, send_file
+from flask import Flask, redirect, request, render_template, send_file, url_for
 import pandas as pd
 from datetime import datetime, timedelta
 from io import BytesIO
@@ -71,11 +68,16 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# Diccionario de usuarios con números de celular en formato internacional
+
+
+
+
+
+
 Diccionario = {
-    "nombre": ["yenifer rendon", "arley rendon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
-    "cedula": [1000992177, 1000992179, 10000003, 10000004, 10000005, 10000006],
-    "numero_celular": ["+573103396961", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
+    "nombre": ["yenifer rendon", "alix rincon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
+    "cedula": [1000992177, 40417761, 10000003, 10000004, 10000005, 10000006],
+    "numero_celular": ["+573134864354", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
     "afiliado": [230, 450, 550, 600, 700, 800],
     "fecha_emision": [
         datetime(2023, 2, 1),
@@ -102,15 +104,14 @@ print(df)
 
 
 
-
 def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
     # Rutas de los logos
-    firma_path = "firma.gif"
-    logo1_path = "logo.gif"
-    logo2_path = "logo_2.gif"
+    firma_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/firma.gif"
+    logo1_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo.gif"
+    logo2_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_2.gif"
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
     
 
@@ -305,6 +306,10 @@ from twilio.rest import Client
 dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
 load_dotenv(dotenv_path)
 
+
+import os
+from twilio.rest import Client
+
 # Cargar credenciales de Twilio desde variables de entorno
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
@@ -342,6 +347,12 @@ from twilio.rest import Client
 
 dotenv_path = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\.env"
 load_dotenv(dotenv_path)
+
+
+import time
+from datetime import datetime
+from twilio.rest import Client
+import os
 
 # Cargar credenciales de Twilio desde variables de entorno
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
@@ -480,16 +491,17 @@ def buscar():
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
 
 
-registro_path = 'registro_emisiones.txt'
+
+registro = 'registro_emisiones.txt'
 import os
-registro_path = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
+registro = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
 
 @app.route('/historial')
 def historial():
     registros = []
     try:
         # Leer el archivo de registros
-        with open(registro_path, 'r') as archivo:
+        with open(registro, 'r') as archivo:
             for linea in archivo:
                 registros.append(linea.strip().split(','))
     except Exception as e:
@@ -499,6 +511,87 @@ def historial():
     return render_template('historial.html', registros=registros)
 
 
+
+
+
+
+
+
+from flask import Flask, render_template, request, redirect, url_for
+
+
+# Definir la contraseña correcta
+CONTRASEÑA_CORRECTA = "123"
+
+# Ruta del archivo donde se almacenan los registros
+registro_path = "registros.txt"  # Asegúrate de que este archivo existe o se crea antes de usarlo
+
+@app.route("/password", methods=["GET", "POST"])
+def ingresar_password():
+    mensaje = ""
+
+    if request.method == "POST":
+        contraseña_ingresada = request.form["password"]
+        
+        if contraseña_ingresada == CONTRASEÑA_CORRECTA:
+            return redirect(url_for("historial_usuario"))  # Redirige correctamente
+        else:
+            mensaje = "❌ Contraseña incorrecta. Inténtalo de nuevo."
+
+    return render_template("password.html", mensaje=mensaje)
+
+
+
+
+
+registro_path = os.path.join(os.path.dirname(__file__), 'usuarios_informacion.txt')
+
+
+from flask import Flask, render_template, request, redirect, url_for
+import os
+import pandas as pd
+
+
+registro_path = "registros.txt"
+
+# Función para cargar los datos en un DataFrame
+def cargar_dataframe():
+    if not os.path.exists(registro_path):
+        return pd.DataFrame(columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
+    
+    try:
+        df = pd.read_csv(registro_path, names=["Nombre", "Cédula", "Celular", "Parcela", "Folio"], encoding='utf-8')
+    except Exception as e:
+        print(f"Error al leer el archivo: {e}")
+        df = pd.DataFrame(columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
+    
+    return df
+
+@app.route('/historial_usuario')
+def historial_usuario():
+    df = cargar_dataframe()
+    registros = df.values.tolist()  # Convertimos el DataFrame en una lista para enviarla a la plantilla
+    return render_template('historial_usuario.html', registros=registros)
+
+@app.route('/agregar_usuario', methods=['POST'])
+def agregar_usuario():
+    nombre = request.form.get('nombre')
+    cedula = request.form.get('cedula')
+    celular = request.form.get('celular')
+    parcela = request.form.get('parcela')
+    folio = request.form.get('folio')
+
+    if nombre and cedula and celular and parcela and folio:
+        nuevo_registro = pd.DataFrame([[nombre, cedula, celular, parcela, folio]],
+                                      columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
+        
+        try:
+            nuevo_registro.to_csv(registro_path, mode='a', header=not os.path.exists(registro_path),
+                                  index=False, encoding='utf-8')
+        except Exception as e:
+            print(f"Error al escribir en el archivo: {e}")
+
+    return redirect(url_for('historial_usuario'))
 
 
 
