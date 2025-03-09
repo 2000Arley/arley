@@ -28,7 +28,7 @@
             text-align: center;
             padding: 30px;
             border-radius: 15px;
-            background-color: rgba(255, 255, 255, 0.01); /* Fondo semitransparente */
+            background-color: rgba(255, 255, 255, 0.01);
             filter: brightness(1.2);
             backdrop-filter: blur(3px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.9);
@@ -55,15 +55,6 @@
             color: #333;
         }
 
-        input::placeholder {
-            color: #777;
-        }
-
-        input:focus {
-            border-color: #56ab2f;
-            box-shadow: 0 0 5px rgba(86, 171, 47, 0.5);
-        }
-
         button {
             font-size: 18px;
             background: linear-gradient(90deg, #56ab2f, #a8e063);
@@ -76,68 +67,51 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        footer {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #cccccc;
-        }
-
-        footer a {
-            color: #a8e063;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
         .underline-link {
-            font-size: 15px;
-            font-weight: bold;
-            color: #a8e063;
-            text-decoration: none;
-            position: relative;
-            transition: color 0.3s ease;
-        }
-
-        .underline-link::after {
-            content: "";
             position: absolute;
-            left: 0;
-            bottom: -3px;
-            width: 100%;
-            height: 2px;
-            background: #ffffff;
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+            margin-top: -190px;
+            top: 50px;
+            left: 748px;
+            font-size: 16px;
+            color: rgb(252, 252, 252);
+            text-decoration: underline;
+            opacity: 0.7;
         }
 
-        .underline-link:hover {
+        /* Estilos para "¿Problemas?" */
+        .help-text {
+            font-size: 14px;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        /* Estilo del enlace "Obtén ayuda" */
+        #helpLink {
+            color: rgb(252, 252, 252);
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: none;
+        }
+
+        /* Estilos para el mensaje de ayuda */
+        .help-message {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(223, 231, 224, 0.2);
+            color: #fff;
+            font-size: 14px;
+        }
+        #helpLink {
             color: #a8e063;
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: none;
         }
 
-        .underline-link:hover::after {
-            transform: scaleX(1);
-        }
-        .underline-link {
-    position: absolute; /* Posicionamiento absoluto */
-     margin-top: -190px; /* Lo mueve hacia arriba */
-    top: 50px; /* Ajusta la posición desde la parte superior */
-    left: 748px; /* Lo mueve hacia la derecha */
-    font-size: 16px;
-    color:rgb(252, 252, 252); /* Color del enlace */
-    text-decoration: underline;
-    opacity: 0.7; /* Nivel de transparencia */
-}
 
     </style>
 </head>
@@ -149,14 +123,26 @@
             <button type="submit">Buscar</button>
         </form>
         <footer>
-            {% if error %}
-                <div class="error-message">
-                    {{ error }}
-                </div>
-            {% endif %}
-            <p>¿Problemas? <a href="#" id="helpLink">Obtén ayuda</a></p>
+            <p class="help-text">¿Problemas? <a href="#" id="helpLink">Obtén ayuda</a></p>
+            <div id="helpMessage" class="help-message">
+             <p><strong>¿numero de contacto?</strong></p>
+            
+                ronaldo.garzon.3@gmail.com.
+            </div>
         </footer>
         <a href="/password" class="underline-link">Administrador</a>
     </div>
+
+    <script>
+        document.getElementById("helpLink").addEventListener("click", function(event) {
+            event.preventDefault(); // Evita que el enlace haga un salto de página
+            let helpMessage = document.getElementById("helpMessage");
+
+            // Alternar la visibilidad del mensaje de ayuda
+            helpMessage.style.display = (helpMessage.style.display === "none" || helpMessage.style.display === "") 
+                                        ? "block" 
+                                        : "none";
+        });
+    </script>
 </body>
 </html>
