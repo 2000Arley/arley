@@ -111,6 +111,18 @@
             cursor: pointer;
             transition: none;
         }
+        .error-message {
+            font-size: 14px; /* Ajusta el tamaño del texto */
+            color:rgb(255, 255, 255); /* Rojo para destacar errores */
+            background-color: rgba(20, 100, 23, 0.1); /* Fondo sutil */
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        <footer style="font-size: 15px !important;">
+
 
 
     </style>
@@ -122,10 +134,16 @@
             <input type="text" id="cedula" name="cedula" placeholder="Ingrese su cédula" required>
             <button type="submit">Buscar</button>
         </form>
+         <footer>
+            {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+            {% endif %}
         <footer>
             <p class="help-text">¿Problemas? <a href="#" id="helpLink">Obtén ayuda</a></p>
             <div id="helpMessage" class="help-message">
-             <p><strong>¿numero de contacto?</strong></p>
+             <p><strong>!! contacto !!</strong></p>
             
                 ronaldo.garzon.3@gmail.com.
             </div>
