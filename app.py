@@ -311,7 +311,7 @@ def cargar_datos_txt(ruta_archivo):
     return diccionario
 
 # Ruta del archivo
-ruta_txt = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\registros.txt"
+ruta_txt = r"registros.txt"
 
 # Cargar los datos
 diccionario = cargar_datos_txt(ruta_txt)
