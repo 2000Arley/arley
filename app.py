@@ -1,6 +1,5 @@
 
 
-
 from flask import Flask, redirect, request, render_template, send_file, url_for
 import pandas as pd
 from datetime import datetime, timedelta
@@ -72,30 +71,6 @@ app = Flask(__name__)
 
 
 
-
-Diccionario = {
-    "nombre": ["yenifer rendon", "alix rincon", "Carlos Sánchez", "Ana Gómez", "Luis Ramírez", "Laura Torres"],
-    "cedula": [1000992177, 40417761, 10000003, 10000004, 10000005, 10000006],
-    "numero_celular": ["+573134864354", "+573134864352", "+573134864354", "+573134864353", "+573134864354", "+573134864356"],
-    "afiliado": [230, 450, 550, 600, 700, 800],
-    "fecha_emision": [
-        datetime(2023, 2, 1),
-        datetime(2023, 3, 1),
-        datetime(2023, 4, 1),
-        datetime(2023, 5, 1),
-        datetime(2023, 6, 1),
-        datetime(2023, 7, 1),
-    ],
-    "parcela": ["Parcela La Rinconada", "Parcela La Rinconada", "La Nueva", "El Amanecer", "La Laguna", "La Última"],
-}
-
-# Convertir el diccionario a DataFrame
-df = pd.DataFrame(Diccionario)
-
-
-df = pd.DataFrame(Diccionario)
-
-print(df)
 
 
 
@@ -277,6 +252,88 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     p.save()
     buffer.seek(0)
     return buffer
+
+
+
+
+
+def cargar_datos_txt(ruta_archivo):
+    diccionario = {
+        "nombre": [], "cedula": [], "numero_celular": [],
+        "afiliado": [], "fecha_emision": [], "parcela": []
+    }
+
+    with open(ruta_archivo, "r", encoding="utf-8") as file:
+        next(file)  # Saltar encabezados
+        for i, linea in enumerate(file, start=2):  # Línea 2 en adelante
+            linea = linea.strip()  # Eliminar espacios y saltos de línea
+
+            if not linea:  # Si la línea está vacía, la ignoramos
+                continue
+
+            datos = linea.split(",")  
+            
+            if len(datos) != 6:
+                print(f"⚠️ Advertencia en línea {i}: formato incorrecto -> {datos}")
+                continue  # Saltar esta línea
+
+            try:
+                diccionario["nombre"].append(datos[0].strip())
+                
+                # Validar cédula
+                try:
+                    diccionario["cedula"].append(int(datos[1].strip()))
+                except ValueError:
+                    print(f"❌ Error en línea {i}: Cédula inválida -> {datos[1]}")
+                    diccionario["cedula"].append(None)
+
+                diccionario["numero_celular"].append(datos[2].strip())
+
+                # Validar afiliado
+                if datos[3].strip().isdigit():
+                    diccionario["afiliado"].append(int(datos[3].strip()))
+                else:
+                    print(f"❌ Error en línea {i}: 'afiliado' no es un número -> {datos[3]}")
+                    diccionario["afiliado"].append(None)
+
+                # Validar fecha
+                try:
+                    diccionario["fecha_emision"].append(datetime.strptime(datos[4].strip(), "%Y-%m-%d"))
+                except ValueError:
+                    print(f"❌ Error en línea {i}: Fecha inválida -> {datos[4]}")
+                    diccionario["fecha_emision"].append(None)
+
+                diccionario["parcela"].append(datos[5].strip())
+
+            except Exception as e:
+                print(f"❌ Error inesperado en línea {i}: {e}")
+
+    return diccionario
+
+# Ruta del archivo
+ruta_txt = r"C:\Users\Usuario\OneDrive\Desktop\mi proyecto\registros.txt"
+
+# Cargar los datos
+diccionario = cargar_datos_txt(ruta_txt)
+
+# Verificar si todas las listas tienen la misma longitud
+longitudes = {k: len(v) for k, v in diccionario.items()}
+print("📊 Longitudes de cada columna:", longitudes)
+
+# Ajustar las listas al tamaño mínimo
+min_length = min(longitudes.values())  
+for k in diccionario.keys():
+    diccionario[k] = diccionario[k][:min_length]
+
+# Convertir a DataFrame
+df = pd.DataFrame(diccionario)
+print(df.head())
+
+
+
+
+
+
 
 
 
@@ -649,6 +706,12 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
+
+
+
 
 
 
