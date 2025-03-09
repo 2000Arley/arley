@@ -1,7 +1,6 @@
 
 
 
-
 from flask import Flask, redirect, request, render_template, send_file, url_for
 import pandas as pd
 from datetime import datetime, timedelta
@@ -109,9 +108,9 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     p = canvas.Canvas(buffer, pagesize=letter)
 
     # Rutas de los logos
-    firma_path = "firma.gif"
-    logo1_path = "logo.gif"
-    logo2_path = "logo_2.gif"
+    firma_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/firma.gif"
+    logo1_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo.gif"
+    logo2_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_2.gif"
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
     
 
@@ -540,11 +539,14 @@ def ingresar_password():
 
     return render_template("password.html", mensaje=mensaje)
 
-
-
-
-
 registro_path = os.path.join(os.path.dirname(__file__), 'usuarios_informacion.txt')
+
+
+
+
+
+
+
 
 
 from flask import Flask, render_template, request, redirect, url_for
@@ -558,14 +560,14 @@ registro_path = "registros.txt"
 def cargar_dataframe():
     if not os.path.exists(registro_path):
         return pd.DataFrame(columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
-    
-    try:
-        df = pd.read_csv(registro_path, names=["Nombre", "Cédula", "Celular", "Parcela", "Folio"], encoding='utf-8')
-    except Exception as e:
-        print(f"Error al leer el archivo: {e}")
-        df = pd.DataFrame(columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
+
+    df = pd.read_csv(registro_path, names=["Nombre", "Cédula", "Celular", "Parcela", "Folio", "Fecha_Emisión"], 
+                 encoding='utf-8', delimiter=",", header=None, dtype=str)
+
     
     return df
+
+
 
 @app.route('/historial_usuario')
 def historial_usuario():
@@ -592,6 +594,34 @@ def agregar_usuario():
             print(f"Error al escribir en el archivo: {e}")
 
     return redirect(url_for('historial_usuario'))
+from flask import Flask, render_template, request, redirect, url_for
+import os
+
+
+
+
+
+registro_path = "registros.txt"  # Ruta del archivo de registros
+
+@app.route("/eliminar_usuario", methods=["POST"])
+def eliminar_usuario():
+    cedula = request.form.get("cedula")  # Usar .get() para evitar errores si no se envía
+
+    if not os.path.exists(registro_path):  # Evitar error si el archivo no existe
+        return redirect(url_for("historial_usuario"))
+
+    usuarios_actualizados = []
+    with open(registro_path, "r", encoding="utf-8") as f:
+        for linea in f:
+            datos = linea.strip().split(",")
+            if len(datos) > 1 and datos[1] != cedula:  # Evita errores si la línea está vacía o incompleta
+                usuarios_actualizados.append(",".join(datos))
+
+    with open(registro_path, "w", encoding="utf-8") as f:
+        if usuarios_actualizados:
+            f.write("\n".join(usuarios_actualizados) + "\n")  # Escribir solo si hay datos
+
+    return redirect(url_for("historial_usuario"))  # Redirige a historial de usuarios
 
 
 
@@ -619,11 +649,6 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
-
-
-
-
 
 
 
