@@ -86,7 +86,7 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
     # Rutas de los logos
     firma_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/firma.gif"
-    logo1_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo.gif"
+    logo1_path = "logo.gif"
     logo2_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_2.gif"
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
     
