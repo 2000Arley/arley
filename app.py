@@ -1,6 +1,8 @@
 
 
-from flask import Flask, redirect, request, render_template, send_file, url_for
+
+from urllib.parse import urlencode
+from flask import Flask, render_template_string, request, render_template, send_file
 import pandas as pd
 from datetime import datetime, timedelta
 from io import BytesIO
@@ -227,25 +229,23 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
 
 
-
-
-
-
-
-
-
     # GENERAR EL CÓDIGO QR
-    qr_data = f"Nombre: {nombre}\nCédula: {cedula}\nFecha de emisión: {fecha_emision}\nFecha de vencimiento: {fecha_vencimiento}\nParcela: {parcela}"
+    qr_data = f"http://127.0.0.1:5000/codigo_qr.html?nombre={nombre}&cedula={cedula}&fecha_emision={fecha_emision}&fecha_vencimiento={fecha_vencimiento}&parcela={parcela}"
+# Crear el QR con la URL generada
+
     qr = qrcode.make(qr_data)
 
-    # Guardar el QR en memoria
+# Guardar el QR en memoria
     qr_buffer = BytesIO()
     qr.save(qr_buffer, format="PNG")
     qr_buffer.seek(0)
 
-    # Agregar QR al PDF
+# Agregar QR al PDF
     qr_image = ImageReader(qr_buffer)
-    p.drawImage(qr_image, 250, 50, width=100, height=100)  # Posición (x, y) y tamaño
+    p.drawImage(qr_image, 250, 50, width=100, height=100)
+
+
+    
 
     # Finalizar el PDF
     p.showPage()
@@ -256,6 +256,8 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
 
 
+import pandas as pd
+from datetime import datetime
 
 def cargar_datos_txt(ruta_archivo):
     diccionario = {
@@ -266,20 +268,20 @@ def cargar_datos_txt(ruta_archivo):
     with open(ruta_archivo, "r", encoding="utf-8") as file:
         next(file)  # Saltar encabezados
         for i, linea in enumerate(file, start=2):  # Línea 2 en adelante
-            linea = linea.strip()  # Eliminar espacios y saltos de línea
+            linea = linea.strip()
 
-            if not linea:  # Si la línea está vacía, la ignoramos
+            if not linea:
                 continue
 
-            datos = linea.split(",")  
-            
+            datos = linea.split(",")
+
             if len(datos) != 6:
                 print(f"⚠️ Advertencia en línea {i}: formato incorrecto -> {datos}")
-                continue  # Saltar esta línea
+                continue
 
             try:
                 diccionario["nombre"].append(datos[0].strip())
-                
+
                 # Validar cédula
                 try:
                     diccionario["cedula"].append(int(datos[1].strip()))
@@ -296,13 +298,15 @@ def cargar_datos_txt(ruta_archivo):
                     print(f"❌ Error en línea {i}: 'afiliado' no es un número -> {datos[3]}")
                     diccionario["afiliado"].append(None)
 
-                # Validar fecha
+                # Validar fecha con microsegundos
+                fecha_raw = datos[4].strip()
                 try:
-                    diccionario["fecha_emision"].append(datetime.strptime(datos[4].strip(), "%Y-%m-%d"))
+                    fecha = datetime.strptime(fecha_raw, "%Y-%m-%d %H:%M:%S.%f")
                 except ValueError:
-                    print(f"❌ Error en línea {i}: Fecha inválida -> {datos[4]}")
-                    diccionario["fecha_emision"].append(None)
+                    print(f"❌ Error en línea {i}: Fecha inválida -> {fecha_raw}")
+                    fecha = None
 
+                diccionario["fecha_emision"].append(fecha)
                 diccionario["parcela"].append(datos[5].strip())
 
             except Exception as e:
@@ -310,27 +314,19 @@ def cargar_datos_txt(ruta_archivo):
 
     return diccionario
 
-# Ruta del archivo
-ruta_txt = r"registros.txt"
 
-# Cargar los datos
-diccionario = cargar_datos_txt(ruta_txt)
-
-# Verificar si todas las listas tienen la misma longitud
-longitudes = {k: len(v) for k, v in diccionario.items()}
-print("📊 Longitudes de cada columna:", longitudes)
-
-# Ajustar las listas al tamaño mínimo
-min_length = min(longitudes.values())  
-for k in diccionario.keys():
-    diccionario[k] = diccionario[k][:min_length]
-
-# Convertir a DataFrame
-df = pd.DataFrame(diccionario)
-print(df.head())
+def obtener_dataframe_actualizado():
+    diccionario = cargar_datos_txt("datos.csv")
+    longitudes = {k: len(v) for k, v in diccionario.items()}
+    min_length = min(longitudes.values())
+    for k in diccionario:
+        diccionario[k] = diccionario[k][:min_length]
+    return pd.DataFrame(diccionario)
 
 
-
+# Ejecutar y mostrar resultado
+df = obtener_dataframe_actualizado()
+print(df)
 
 
 
@@ -496,13 +492,6 @@ def buscar():
                 # Actualizar la fecha en el DataFrame
                 df.loc[df['cedula'] == cedula, 'fecha_emision'] = nueva_fecha_emision
 
-                # Guardar cambios en CSV (si aplica)
-                try:
-                    df.to_csv("datos.csv", index=False)
-                    print("✅ Datos actualizados en CSV")
-                except Exception as e:
-                    print(f"❌ Error guardando en CSV: {str(e)}")
-
                 try:
                     # Generar el PDF con las nuevas fechas
                     pdf_buffer = generar_pdf(
@@ -545,19 +534,20 @@ def buscar():
     except Exception as e:
         print(f"❌ Error inesperado: {str(e)}")
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
+    
 
 
 
-registro = 'registro_emisiones.txt'
+registro_path = 'registro_emisiones.txt'
 import os
-registro = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
+registro_path = os.path.join(os.path.dirname(__file__), 'registro_emisiones.txt')
 
 @app.route('/historial')
 def historial():
     registros = []
     try:
         # Leer el archivo de registros
-        with open(registro, 'r') as archivo:
+        with open(registro_path, 'r') as archivo:
             for linea in archivo:
                 registros.append(linea.strip().split(','))
     except Exception as e:
@@ -567,6 +557,20 @@ def historial():
     return render_template('historial.html', registros=registros)
 
 
+
+
+@app.route('/codigo_qr.html')
+def mostrar_codigo_qr():
+    nombre = request.args.get("nombre", "")
+    cedula = request.args.get("cedula", "")
+    fecha_emision = request.args.get("fecha_emision", "")
+    fecha_vencimiento = request.args.get("fecha_vencimiento", "")
+    parcela = request.args.get("parcela", "")
+
+    # Imprimir para ver si los parámetros se reciben correctamente
+    print(f"Nombre: {nombre}, Cédula: {cedula}, Fecha de emisión: {fecha_emision}, Fecha de vencimiento: {fecha_vencimiento}, Parcela: {parcela}")
+    
+    return render_template("codigo_qr.html", nombre=nombre, cedula=cedula, fecha_emision=fecha_emision, fecha_vencimiento=fecha_vencimiento, parcela=parcela)
 
 
 
@@ -580,7 +584,7 @@ from flask import Flask, render_template, request, redirect, url_for
 CONTRASEÑA_CORRECTA = "123"
 
 # Ruta del archivo donde se almacenan los registros
-registro_path = "registros.txt"  # Asegúrate de que este archivo existe o se crea antes de usarlo
+registro_pa = "datos.csv"  # Asegúrate de que este archivo existe o se crea antes de usarlo
 
 @app.route("/password", methods=["GET", "POST"])
 def ingresar_password():
@@ -596,7 +600,7 @@ def ingresar_password():
 
     return render_template("password.html", mensaje=mensaje)
 
-registro_path = os.path.join(os.path.dirname(__file__), 'usuarios_informacion.txt')
+registro_pa = os.path.join(os.path.dirname(__file__), 'datos.csv')
 
 
 
@@ -611,18 +615,6 @@ import os
 import pandas as pd
 
 
-registro_path = "registros.txt"
-
-# Función para cargar los datos en un DataFrame
-def cargar_dataframe():
-    if not os.path.exists(registro_path):
-        return pd.DataFrame(columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
-
-    df = pd.read_csv(registro_path, names=["Nombre", "Cédula", "Celular", "Parcela", "Folio", "Fecha_Emisión"], 
-                 encoding='utf-8', delimiter=",", header=None, dtype=str)
-
-    
-    return df
 
 
 
@@ -639,42 +631,57 @@ def agregar_usuario():
     celular = request.form.get('celular')
     parcela = request.form.get('parcela')
     folio = request.form.get('folio')
+    fecha_emision = request.form.get('fecha_emision')  # ← nombre correcto
 
-    if nombre and cedula and celular and parcela and folio:
-        nuevo_registro = pd.DataFrame([[nombre, cedula, celular, parcela, folio]],
-                                      columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio"])
+    if nombre and cedula and celular and parcela and folio and fecha_emision:
+        nuevo_registro = pd.DataFrame([[nombre, cedula, celular, parcela, folio, fecha_emision]],
+                                      columns=["Nombre", "Cédula", "Celular", "Parcela", "Folio", "Fecha_Emisión"])
         
         try:
-            nuevo_registro.to_csv(registro_path, mode='a', header=not os.path.exists(registro_path),
+            nuevo_registro.to_csv(registro_p, mode='a', header=not os.path.exists(registro_p),
                                   index=False, encoding='utf-8')
         except Exception as e:
             print(f"Error al escribir en el archivo: {e}")
 
     return redirect(url_for('historial_usuario'))
-from flask import Flask, render_template, request, redirect, url_for
-import os
 
 
 
 
 
-registro_path = "registros.txt"  # Ruta del archivo de registros
+registro_p = "datos.csv"
+
+# Función para cargar los datos en un DataFrame
+def cargar_dataframe():
+    if not os.path.exists(registro_p):
+        return pd.DataFrame(columns=["Nombre", "Cédula", "Celular","Fecha_Emisión", "Parcela", "Folio"])
+
+    df = pd.read_csv(registro_p, names=["Nombre", "Cédula", "Celular", "Parcela", "Folio", "Fecha_Emisión"], 
+                 encoding='utf-8', delimiter=",", header=None, dtype=str)
+
+    
+    return df
+
+
+
+
+registro_p = "datos.csv"  # Ruta del archivo de registros
 
 @app.route("/eliminar_usuario", methods=["POST"])
 def eliminar_usuario():
     cedula = request.form.get("cedula")  # Usar .get() para evitar errores si no se envía
 
-    if not os.path.exists(registro_path):  # Evitar error si el archivo no existe
+    if not os.path.exists(registro_p):  # Evitar error si el archivo no existe
         return redirect(url_for("historial_usuario"))
 
     usuarios_actualizados = []
-    with open(registro_path, "r", encoding="utf-8") as f:
+    with open(registro_p, "r", encoding="utf-8") as f:
         for linea in f:
             datos = linea.strip().split(",")
             if len(datos) > 1 and datos[1] != cedula:  # Evita errores si la línea está vacía o incompleta
                 usuarios_actualizados.append(",".join(datos))
 
-    with open(registro_path, "w", encoding="utf-8") as f:
+    with open(registro_p, "w", encoding="utf-8") as f:
         if usuarios_actualizados:
             f.write("\n".join(usuarios_actualizados) + "\n")  # Escribir solo si hay datos
 
@@ -691,14 +698,14 @@ def agregar():
         cedula = int(request.form['cedula'])
         parcela = request.form['parcela']
         fecha_emision = datetime.now()
-        fecha_vencimiento = (fecha_emision + timedelta(minutes=2)).strftime('%d/%m/%Y %H:%M:%S')
+        fecha_vencimiento = (fecha_emision + timedelta(minutes=2)).strftime('%d/%m/%Y ')
         
         # Agregar la nueva entrada al DataFrame
         global df
         nuevo_registro = pd.DataFrame({'nombre': [nombre], 'cedula': [cedula], 'fecha_emision': [fecha_emision], 'parcela': [parcela]})
         df = pd.concat([df, nuevo_registro], ignore_index=True)
         
-        fecha_emision_formateada = fecha_emision.strftime('%d/%m/%Y %H:%M:%S')
+        fecha_emision_formateada = fecha_emision.strftime('%d/%m/%Y ')
         
         return f"Usuario {nombre} con cédula {cedula} agregado correctamente el {fecha_emision_formateada} con vencimiento el {fecha_vencimiento}."
     except Exception as e:
@@ -706,6 +713,11 @@ def agregar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
+
+
 
 
 
