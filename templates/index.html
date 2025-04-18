@@ -1,120 +1,135 @@
+<!-- Reemplaza tu versión actual por esta -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Oficial de Santa Elena</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Quicksand', sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-                        url('https://img.freepik.com/fotos-premium/paisaje-paisaje-campo-verde-solo-arbol_163782-5672.jpg');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ffffff;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página Oficial de Santa Elena</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                  url('https://img.freepik.com/fotos-premium/paisaje-paisaje-campo-verde-solo-arbol_163782-5672.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      text-align: center;
+    }
 
-        .container {
-            text-align: center;
-            padding: 30px;
-            border-radius: 15px;
-            background-color: rgba(255, 255, 255, 0.0);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
-            width: 80%;
-        }
+    .container {
+      padding: 30px;
+      border-radius: 15px;
+      background-color: rgba(255, 255, 255, 0.0);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 90%;
+    }
 
-        h1 {
-            font-size: 32px;
-            margin-bottom: 15px;
-            color: #f4f4f4;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            font-weight: 600;
-        }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+      color: #f4f4f4;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
 
-        p {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: #e0e0e0;
-            line-height: 1.6;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-        }
+    p {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: #e0e0e0;
+      line-height: 1.6;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    }
 
-        a button {
-            font-size: 18px;
-            background: linear-gradient(90deg, #56ab2f, #a8e063);
-            color: #ffffff;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
+    a button {
+      font-size: 18px;
+      background: linear-gradient(90deg, #56ab2f, #a8e063);
+      color: #ffffff;
+      padding: 12px 40px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
 
-        a button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
+    a button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
 
-        a button:active {
-            transform: scale(0.98);
-        }
+    a button:active {
+      transform: scale(0.98);
+    }
 
-        .help-link {
-            display: block;
-            text-align: center;
-            margin-top: -298px;
-            margin-left: 698px;
-            color: #f4f4f4;
-            font-size: 16px;
-            text-decoration: underline;
-            position: absolute;
-            opacity: 0.3;
-        }
-    </style>
+    /* Nuevo estilo para enlace flotante responsive */
+    .floating-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: #ffffff;
+      text-decoration: underline;
+      opacity: 0.5;
+    }
+
+    .floating-link:hover {
+      opacity: 1;
+    }
+
+    @media screen and (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+
+      a button {
+        font-size: 16px;
+        padding: 10px 30px;
+      }
+
+      .floating-link {
+        font-size: 12px;
+        top: 10px;
+        right: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Bienvenidos a Santa Helena</h1>
-        
-        <!-- Enlace único y funcional -->
-        <a href="#" class="help-link" id="helpLink">Historial de Registro</a>
+  <!-- Enlace flotante superior derecho -->
+  <a href="/historial" class="floating-link">Historial de Registro</a>
 
-        <p>Sumérgete en la belleza natural y los paisajes del campo que solo Santa Elena puede ofrecer.</p>
-        <a href="/buscador">
-            <button>Ingresar</button>
-        </a>
-    </div>
+  <div class="container">
+    <h1>Bienvenidos a Santa Helena</h1>
+    <p>Sumérgete en la belleza natural y los paisajes del campo que solo Santa Elena puede ofrecer.</p>
+    <a href="/buscador">
+      <button>Ingresar</button>
+    </a>
+  </div>
 
-    <script>
-        document.getElementById('helpLink').addEventListener('click', function(event) {
-            event.preventDefault(); // Evita navegación por defecto
-
-            const registroPath = 'registro_emisiones.txt';
-
-            fetch(registroPath)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al cargar el archivo');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    console.log(data); // Puedes también mostrarlo en pantalla si prefieres
-                })
-                .catch(error => {
-                    console.error('Hubo un problema con la petición fetch:', error);
-                });
-        });
-    </script>
+  <script>
+    document.querySelector('.floating-link').addEventListener('click', function (event) {
+      event.preventDefault();
+      fetch('registro_emisiones.txt')
+        .then(response => {
+          if (!response.ok) throw new Error('Error al cargar el archivo');
+          return response.text();
+        })
+        .then(data => console.log(data))
+        .catch(error => console.error('Hubo un problema con la petición fetch:', error));
+    });
+  </script>
 </body>
 </html>
+
 
