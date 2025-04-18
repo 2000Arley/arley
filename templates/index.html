@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,7 +6,6 @@
     <title>Página Oficial de Santa Elena</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* Estilo general */
         body {
             margin: 0;
             padding: 0;
@@ -27,80 +25,68 @@
             text-align: center;
             padding: 30px;
             border-radius: 15px;
-            background-color: rgba(255, 255, 255, 0.0); /* Fondo más transparente */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Sombra */
-            max-width: 400px; /* Ancho reducido */
-            width: 80%; /* Adaptativo */
+            background-color: rgba(255, 255, 255, 0.0);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 80%;
         }
 
         h1 {
-            font-size: 32px; /* Tamaño reducido */
+            font-size: 32px;
             margin-bottom: 15px;
-            color: #f4f4f4; /* Blanco brillante */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Sombra en el texto */
+            color: #f4f4f4;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             font-weight: 600;
         }
 
         p {
-            font-size: 16px; /* Tamaño reducido */
+            font-size: 16px;
             margin-bottom: 20px;
-            color: #e0e0e0; /* Gris claro */
+            color: #e0e0e0;
             line-height: 1.6;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
         }
 
         a button {
             font-size: 18px;
-            background: linear-gradient(90deg, #56ab2f, #a8e063); /* Degradado verde */
+            background: linear-gradient(90deg, #56ab2f, #a8e063);
             color: #ffffff;
-            padding: 12px 40px; /* Botón más pequeño */
+            padding: 12px 40px;
             border: none;
             border-radius: 30px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Sombra del botón */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         a button:hover {
-            transform: scale(1.1); /* Efecto de zoom */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Sombra más intensa */
+            transform: scale(1.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
 
         a button:active {
-            transform: scale(0.98); /* Botón ligeramente hundido */
+            transform: scale(0.98);
         }
 
-        #helpLink {
+        .help-link {
             display: block;
             text-align: center;
-            margin-top: -298px; /* Lo mueve hacia arriba */
-            margin-left: 698px; /* Mueve hacia la derecha */
-            margin-right: auto; /* Mueve hacia la derecha */
-            color: #f4f4f4; /* Color del enlace */
+            margin-top: -298px;
+            margin-left: 698px;
+            color: #f4f4f4;
             font-size: 16px;
             text-decoration: underline;
-           
-            position: absolute; /* Para posicionar el elemento con top, right, bottom, left */
-            opacity: 0.3; /* Nivel de transparencia */
+            position: absolute;
+            opacity: 0.3;
         }
-
-        
-        
     </style>
 </head>
 <body>
     <div class="container">
-        <h1> Bienvenidos a Santa Helena </h1>
-        <a href="/historial" id="helpLink">Historial de Registro</a>
-        <a href="historial.html" id="helpLink">Historial de Registro</a>
-        <a href="/historial" id="helpLink">Historial de Registro</a>
-
-
-
-       
-
-
-
+        <h1>Bienvenidos a Santa Helena</h1>
+        
+        <!-- Enlace único y funcional -->
+        <a href="#" class="help-link" id="helpLink">Historial de Registro</a>
 
         <p>Sumérgete en la belleza natural y los paisajes del campo que solo Santa Elena puede ofrecer.</p>
         <a href="/buscador">
@@ -110,11 +96,10 @@
 
     <script>
         document.getElementById('helpLink').addEventListener('click', function(event) {
-            event.preventDefault(); // Evitar el comportamiento por defecto del enlace
-            // Nombre del archivo que se quiere leer
+            event.preventDefault(); // Evita navegación por defecto
+
             const registroPath = 'registro_emisiones.txt';
-            
-            // Lógica para leer el contenido del archivo
+
             fetch(registroPath)
                 .then(response => {
                     if (!response.ok) {
@@ -123,10 +108,7 @@
                     return response.text();
                 })
                 .then(data => {
-                    // Imprimir el contenido del archivo en consola o mostrar en el DOM
-                    console.log(data);
-                    // O puedes mostrarlo en un div si lo deseas
-                    // document.getElementById('contenidoArchivo').innerText = data;
+                    console.log(data); // Puedes también mostrarlo en pantalla si prefieres
                 })
                 .catch(error => {
                     console.error('Hubo un problema con la petición fetch:', error);
@@ -135,3 +117,4 @@
     </script>
 </body>
 </html>
+
