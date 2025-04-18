@@ -1,6 +1,4 @@
 
-
-
 from urllib.parse import urlencode
 from flask import Flask, render_template_string, request, render_template, send_file
 import pandas as pd
@@ -67,19 +65,6 @@ from datetime import datetime, timedelta
 #unica parte modificable para ingresar una nueva persona a la base de datos #
 
 app = Flask(__name__)
-
-
-
-
-
-
-
-
-
-
-
-
-
 def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
@@ -88,6 +73,7 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
     firma_path = "firma.gif"
     logo1_path = "logo.gif"
     logo2_path = "logo_2.gif"
+    
     #logo3_path = "C:/Users/Usuario/OneDrive/Desktop/mi proyecto/logo_3.gif"
     
 
@@ -324,9 +310,8 @@ def obtener_dataframe_actualizado():
     return pd.DataFrame(diccionario)
 
 
-# Ejecutar y mostrar resultado
 df = obtener_dataframe_actualizado()
-print(df)
+
 
 
 
@@ -390,7 +375,6 @@ print(f"TWILIO_PHONE: {twilio_phone}")
 
 
 
-
 import time
 
 from datetime import datetime
@@ -448,7 +432,6 @@ def index():
 def buscador():
     return render_template('busqueda.html')  # Ahora apunta a 'index.html'
 
-
 from datetime import datetime, timedelta
 import pandas as pd
 import threading
@@ -457,6 +440,9 @@ from flask import render_template, request, send_file
 @app.route('/buscar', methods=['POST'])
 def buscar():
     try:
+        # 🔁 Recargar los datos desde el archivo CSV
+        df = obtener_dataframe_actualizado()
+
         cedula = request.form['cedula']
 
         # Verificar si la cédula es un número válido
@@ -480,20 +466,18 @@ def buscar():
             fecha_emision = pd.to_datetime(fecha_emision).to_pydatetime()
             fecha_vencimiento = fecha_emision + timedelta(minutes=2)
 
-            # 🔍 Depuración: Imprimir fechas en consola
             print(f"Fecha emisión: {fecha_emision}, Fecha vencimiento: {fecha_vencimiento}, Fecha actual: {datetime.now()}")
 
             # Verificar si la carta está vencida
             if datetime.now() > fecha_vencimiento:
-                # Generar una nueva carta con la fecha actual
                 nueva_fecha_emision = datetime.now()
                 nueva_fecha_vencimiento = nueva_fecha_emision + timedelta(minutes=2)
 
-                # Actualizar la fecha en el DataFrame
+                # Actualizar la fecha en el archivo original (CSV)
                 df.loc[df['cedula'] == cedula, 'fecha_emision'] = nueva_fecha_emision
+                df.to_csv("datos.csv", index=False)
 
                 try:
-                    # Generar el PDF con las nuevas fechas
                     pdf_buffer = generar_pdf(
                         nombre, cedula,
                         nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'),
@@ -508,7 +492,6 @@ def buscar():
                     print(f"❌ Error generando el PDF: {str(e)}")
                     return render_template('busqueda.html', error=f"Error generando el PDF: {str(e)}")
 
-                # Guardar el registro solo después de generar el PDF
                 try:
                     with open(registro_path, 'a') as archivo:
                         registro = f"{cedula},{nombre},{nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S')},{parcela}\n"
@@ -518,11 +501,10 @@ def buscar():
                     print(f"❌ Error guardando el registro: {str(e)}")
                     return render_template('busqueda.html', error=f"Error guardando el registro: {str(e)}")
 
-                # Enviar mensajes sin bloquear la ejecución
+                # Enviar mensajes en segundo plano
                 threading.Thread(target=enviar_mensaje, args=(nombre, nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), "+573134864354", nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
                 threading.Thread(target=enviar_mensaje_vencido, args=(nombre, "+573134864354", nueva_fecha_emision.strftime('%Y-%m-%d %H:%M:%S'), nueva_fecha_vencimiento.strftime('%Y-%m-%d %H:%M:%S'))).start()
 
-                # Descargar el PDF
                 return send_file(pdf_buffer, as_attachment=True, download_name='carta_residencia.pdf', mimetype='application/pdf')
 
             else:
@@ -534,8 +516,6 @@ def buscar():
     except Exception as e:
         print(f"❌ Error inesperado: {str(e)}")
         return render_template('busqueda.html', error=f"Error inesperado: {str(e)}")
-    
-
 
 
 registro_path = 'registro_emisiones.txt'
@@ -689,6 +669,18 @@ def eliminar_usuario():
 
 
 
+@app.route('/descargar/<cedula>')
+def descargar(cedula):
+    df = obtener_dataframe_actualizado()  # 🔄 Siempre se actualiza con el CSV
+    usuario = df[df['cedula'] == cedula]
+
+    if usuario.empty:
+        return "Usuario no encontrado", 404
+
+    # Aquí generarías la carta usando los datos de 'usuario'
+    return "Carta generada correctamente"
+
+
 
 
 @app.route('/agregar', methods=['POST'])
@@ -712,7 +704,10 @@ def agregar():
         return f"Ocurrió un error: {e}"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True,port=5000)
+
+
+
 
 
 
