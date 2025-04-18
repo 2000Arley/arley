@@ -216,7 +216,9 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
 
     # GENERAR EL CÓDIGO QR
+    
     qr_data = f"http://127.0.0.1:5000/codigo_qr.html?nombre={nombre}&cedula={cedula}&fecha_emision={fecha_emision}&fecha_vencimiento={fecha_vencimiento}&parcela={parcela}"
+
 # Crear el QR con la URL generada
 
     qr = qrcode.make(qr_data)
@@ -536,9 +538,6 @@ def historial():
 
     return render_template('historial.html', registros=registros)
 
-
-
-
 @app.route('/codigo_qr.html')
 def mostrar_codigo_qr():
     nombre = request.args.get("nombre", "")
@@ -547,14 +546,9 @@ def mostrar_codigo_qr():
     fecha_vencimiento = request.args.get("fecha_vencimiento", "")
     parcela = request.args.get("parcela", "")
 
-    # Imprimir para ver si los parámetros se reciben correctamente
-    print(f"Nombre: {nombre}, Cédula: {cedula}, Fecha de emisión: {fecha_emision}, Fecha de vencimiento: {fecha_vencimiento}, Parcela: {parcela}")
-    
-    return render_template("codigo_qr.html", nombre=nombre, cedula=cedula, fecha_emision=fecha_emision, fecha_vencimiento=fecha_vencimiento, parcela=parcela)
-
-
-
-
+    return render_template("codigo_qr.html", nombre=nombre, cedula=cedula,
+                           fecha_emision=fecha_emision, fecha_vencimiento=fecha_vencimiento,
+                           parcela=parcela)
 
 
 from flask import Flask, render_template, request, redirect, url_for
