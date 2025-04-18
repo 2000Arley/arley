@@ -18,6 +18,30 @@
         .eliminar { background: linear-gradient(90deg, #e74c3c, #c0392b); margin-left: 5px; }
         .eliminar:hover { background-color: #922b21; }
         .volver { background: linear-gradient(90deg, #56ab2f, #a8e063); margin-top: 15px; padding: 8px 14px; font-size: 12px; }
+
+        /* Media Query para dispositivos pequeños */
+        @media (max-width: 600px) {
+            table {
+                width: 100%;
+                margin: 10px 0;
+            }
+            th, td {
+                padding: 6px;
+                font-size: 12px;
+            }
+            input[type="text"] {
+                font-size: 10px;
+                padding: 5px;
+            }
+            button {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            .eliminar, .volver {
+                font-size: 10px;
+                padding: 5px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -30,6 +54,7 @@
             <th>Número Celular</th>
             <th>Parcela</th>
             <th>Folio</th>
+            <th>Fecha de Emisión</th>
             <th>Acciones</th>
         </tr>
 
@@ -63,7 +88,7 @@
                 <td><input type="text" name="celular" placeholder="Nuevo Celular" required></td>
                 <td><input type="text" name="parcela" placeholder="Nueva Parcela"></td>
                 <td><input type="text" name="folio" placeholder="Nuevo Folio"></td>
-                <td><input type="text" name="fecha_emision" placeholder="Nuevo fecha_emision"></td>
+                <td><input type="text" name="fecha_emision" placeholder="Nueva Fecha de Emisión"></td>
                 <td><button type="submit">Agregar</button></td>
             </form>
         </tr>
@@ -75,3 +100,4 @@
     </a>
 </body>
 </html>
+
