@@ -1,16 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Información del QR</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Información del QR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    header.institucional {
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    header.institucional p {
+      margin: 2px 0;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+    .banner-verificado {
+      background-color: #e6ffed;
+      border: 1px solid #3c763d;
+      color: #3c763d;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .firma {
+      margin-top: 80px;
+      line-height: 1.1;
+    }
+    .firma .cordialmente {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .firma .linea {
+      margin: 7px 0;
+      border-bottom: 1px solid #000;
+      width: 200px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Información del QR</h1>
-    <p><strong>Nombre:</strong> {{ nombre }}</p>
-    <p><strong>Cédula:</strong> {{ cedula }}</p>
-    <p><strong>Fecha de emisión:</strong> {{ fecha_emision }}</p>
-    <p><strong>Fecha de vencimiento:</strong> {{ fecha_vencimiento }}</p>
-    <p><strong>Parcela:</strong> {{ parcela }}</p>
+
+
+  <!-- Banner de verificación -->
+  <div class="banner-verificado">
+    ✅ Certificado de Datos  
+  </div>
+
+  <h1>Información de Usuario</h1>
+  <p><strong>Nombre:</strong> {{ nombre }}</p>
+  <p><strong>Cédula:</strong> {{ cedula }}</p>
+  <p><strong>Fecha de emisión:</strong> {{ fecha_emision }}</p>
+  <p><strong>Fecha de vencimiento:</strong> {{ fecha_vencimiento }}</p>
+  <p><strong>Parcela:</strong> {{ parcela }}</p>
+
+  <!-- Firma al final -->
+  <div class="firma">
+    <div class="cordialmente">Cordialmente:</div>
+    <div class="linea"></div>
+    <p>DAMARIS HERNÁNDEZ</p>
+    <p>PRESIDENTA DE LA JAC</p>
+    <p>C.C. No. 1073693052</p>
+    <p>Cel. 3122550516</p>
+  </div>
 </body>
 </html>
