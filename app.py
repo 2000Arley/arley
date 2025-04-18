@@ -216,8 +216,10 @@ def generar_pdf(nombre, cedula, fecha_emision, fecha_vencimiento, parcela):
 
 
     # GENERAR EL CÓDIGO QR
+    qr_data = f"https://arley-pagina-wed-santa-helena.onrender.com/codigo_qr.html?nombre={nombre}&cedula={cedula}&fecha_emision={fecha_emision}&fecha_vencimiento={fecha_vencimiento}&parcela={parcela}"
+
     
-    qr_data = f"http://127.0.0.1:5000/codigo_qr.html?nombre={nombre}&cedula={cedula}&fecha_emision={fecha_emision}&fecha_vencimiento={fecha_vencimiento}&parcela={parcela}"
+    
 
 # Crear el QR con la URL generada
 
